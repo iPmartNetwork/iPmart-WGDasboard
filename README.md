@@ -1,4 +1,4 @@
-
+![iPmart WGDashboard](static/logo.svg)
 
 
 # iPmart WGDashboard
@@ -19,29 +19,11 @@
 
 ---
 
-## ⚙️ نصب سریع با اسکریپت
-
-```
-bash <(curl -Ls https://raw.githubusercontent.com/iPmartNetwork/iPmart-WGDasboard/master/install_wg_dashboard.sh) 
-
-```
-
-
-
-
-
 ## ⚙️ نصب سریع
 
-
-
-
-
-
-
 ```bash
-git clone https://github.com/iPmartNetwork/iPmart-WGDasboard.git
-cd iPmart-WGDasboard
-apt install python3.10-venv
+git clone https://github.com/yourusername/iPmart-WGDashboard.git
+cd iPmart-WGDashboard
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt

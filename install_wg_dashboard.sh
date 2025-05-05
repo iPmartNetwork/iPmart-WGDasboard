@@ -40,7 +40,6 @@ INTERFACE=""
 
 # Prompt user for domain, email, and optionally the dashboard port
 read -p "$(echo -e "${BLUE}🌐 Enter your dashboard domain (e.g., panel.example.com): ${RESET}")" DOMAIN
-read -p "$(echo -e "${BLUE}📧 Enter your email for Let's Encrypt SSL: ${RESET}")" EMAIL
 read -p "$(echo -e "${BLUE}🚪 Enter the port for the dashboard (default: 8000): ${RESET}")" DASHBOARD_PORT_INPUT
 
 # Use the provided port or fallback to the default
@@ -109,40 +108,7 @@ export FLASK_ENV=production
 flask run --host=0.0.0.0 --port=8000
 
 # Print success message
-echo "WGDashboard has been successfully installed and is running at http://0.0.0.0:8000"
-
-# Set up NGINX
-echo -e "${CYAN}🔐 Setting up NGINX...${RESET}"
-rm -f /etc/nginx/sites-enabled/default
-
-# Check if the symbolic link already exists and remove it
-if [ -L /etc/nginx/sites-enabled/wgdashboard ]; then
-    echo -e "${YELLOW}⚠️ Existing symbolic link for wgdashboard found. Removing it...${RESET}"
-    rm -f /etc/nginx/sites-enabled/wgdashboard
-fi
-
-# Create the NGINX configuration file
-cat > /etc/nginx/sites-available/wgdashboard <<EOF
-server {
-    listen 80;
-    server_name $DOMAIN;
-
-    location / {
-        proxy_pass http://127.0.0.1:$DASHBOARD_PORT;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-    }
-}
-EOF
-
-# Create a symbolic link for the NGINX configuration
-ln -s /etc/nginx/sites-available/wgdashboard /etc/nginx/sites-enabled/wgdashboard
-
-# Test and restart NGINX
-nginx -t && systemctl restart nginx || {
-    echo -e "${RED}❌ Failed to configure NGINX. Please check the configuration.${RESET}"
-    exit 1
-}
+echo "WGDashboard has been successfully installed and is running at http://0.0.0.0:$DASHBOARD_PORT"
 
 # Set up the dashboard service
 echo -e "${CYAN}🧰 Setting up dashboard systemd service...${RESET}"
