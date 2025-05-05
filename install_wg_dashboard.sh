@@ -50,7 +50,7 @@ echo "✅ WireGuard setup completed with IP $WG_NETWORK and port $WG_PORT."
 echo "📦 Downloading iPmart WGDashboard..."
 mkdir -p $DASHBOARD_DIR
 cd /tmp
-curl -L -o dashboard.tar.gz "https://github.com/iPmartNetwork/iPmart-WGDasboard/releases/download/1.0.0/wgdashboard.tar.gz""
+curl -L -o dashboard.tar.gz "https://github.com/iPmartNetwork/iPmart-WGDasboard/releases/download/1.0.0/wgdashboard.tar.gz"
 tar -xzf dashboard.tar.gz -C $DASHBOARD_DIR --strip-components=1
 
 echo "📦 Installing Python dependencies for dashboard..."
