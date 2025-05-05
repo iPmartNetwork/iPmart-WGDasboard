@@ -83,6 +83,20 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
+echo -e "${CYAN}📦 Verifying Python dependencies...${RESET}"
+cd $DASHBOARD_DIR
+source venv/bin/activate
+if ! pip install -r requirements.txt; then
+    echo -e "${RED}❌ Failed to install Python dependencies. Please check the requirements file.${RESET}"
+    exit 1
+fi
+
+echo -e "${CYAN}🔍 Checking for syntax errors in the application...${RESET}"
+if ! python -m py_compile app/__init__.py; then
+    echo -e "${RED}❌ Syntax errors detected in the application. Please fix them and try again.${RESET}"
+    exit 1
+fi
+
 echo -e "${CYAN}🔐 Setting up NGINX and obtaining SSL certificate...${RESET}"
 rm -f /etc/nginx/sites-enabled/default
 cat > /etc/nginx/sites-available/wgdashboard <<EOF
