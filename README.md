@@ -19,7 +19,24 @@
 
 ---
 
+## ⚙️ نصب سریع با اسکریپت
+
+```
+bash <(curl -Ls https://raw.githubusercontent.com/iPmartNetwork/iPmart-WGDasboard/master/install_wg_dashboard.sh) 
+
+```
+
+
+
+
+
 ## ⚙️ نصب سریع
+
+
+
+
+
+
 
 ```bash
 git clone https://github.com/iPmartNetwork/iPmart-WGDasboard.git
