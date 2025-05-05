@@ -1,0 +1,7 @@
+Flask
+flask_qrcode
+psutil
+ifcfg
+pytz
+icmplib
+flasgger
