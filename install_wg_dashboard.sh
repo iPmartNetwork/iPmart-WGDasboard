@@ -1,45 +1,21 @@
-#!/bin/bash
-
-set -e
-
-# Clear the screen and display a logo
-clear
-echo -e "\033[0;35m"
-echo "
-____________________________________________________________________________________
-        ____                             _     _                                     
-    ,   /    )                           /|   /                                  /   
--------/____/---_--_----__---)__--_/_---/-| -/-----__--_/_-----------__---)__---/-__-
-  /   /        / /  ) /   ) /   ) /    /  | /    /___) /   | /| /  /   ) /   ) /(    
-_/___/________/_/__/_(___(_/_____(_ __/___|/____(___ _(_ __|/_|/__(___/_/_____/___\__
-                                                                                     
-"
-echo "***** https://github.com/ipmartnetwork *****"
-echo -e "\033[0m"
-echo -e "\033[0;36m🌐 Welcome to the iPmart WireGuard Dashboard Installer!\033[0m"
-
-# Define colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-MAGENTA='\033[0;35m'
-RESET='\033[0m'
-
 # Default values
 WG_INTERFACE="wg0"
 WG_PORT="51820"
 WG_NETWORK="10.0.0.1/24"
 WG_CONF_PATH="/etc/wireguard"
 DASHBOARD_DIR="/opt/wgdashboard"
+DASHBOARD_PORT="8000"  # Default port for the web panel
 DOMAIN=""
 EMAIL=""
 INTERFACE=""
 
-# Prompt user for domain and email
+# Prompt user for domain, email, and optionally the dashboard port
 read -p "$(echo -e "${BLUE}🌐 Enter your dashboard domain (e.g., panel.example.com): ${RESET}")" DOMAIN
 read -p "$(echo -e "${BLUE}📧 Enter your email for Let's Encrypt SSL: ${RESET}")" EMAIL
+read -p "$(echo -e "${BLUE}🚪 Enter the port for the dashboard (default: 8000): ${RESET}")" DASHBOARD_PORT_INPUT
+
+# Use the provided port or fallback to the default
+DASHBOARD_PORT=${DASHBOARD_PORT_INPUT:-$DASHBOARD_PORT}
 
 # Detect default network interface
 INTERFACE=$(ip route | grep default | awk '{print $5}')
@@ -52,59 +28,12 @@ fi
 
 echo -e "${GREEN}✅ Detected network interface: ${YELLOW}$INTERFACE${RESET}"
 echo -e "${GREEN}✅ Server IP: ${YELLOW}$SERVER_IP${RESET}"
+echo -e "${GREEN}✅ Dashboard will run on port: ${YELLOW}$DASHBOARD_PORT${RESET}"
 
 # Install dependencies
 echo -e "${CYAN}⏳ Installing WireGuard and required packages...${RESET}"
 apt update && apt install -y wireguard qrencode curl nginx python3-pip unzip certbot python3-certbot-nginx python3.10-venv || {
     echo -e "${RED}❌ Failed to install required packages. Please check your package manager.${RESET}"
-    exit 1
-}
-
-# Generate WireGuard keys
-echo -e "${CYAN}🔐 Generating WireGuard keys...${RESET}"
-mkdir -p $WG_CONF_PATH
-wg genkey | tee $WG_CONF_PATH/privatekey | wg pubkey > $WG_CONF_PATH/publickey
-PRIVATE_KEY=$(cat $WG_CONF_PATH/privatekey)
-PUBLIC_KEY=$(cat $WG_CONF_PATH/publickey)
-
-# Create WireGuard configuration
-echo -e "${CYAN}📄 Creating WireGuard configuration file...${RESET}"
-cat > $WG_CONF_PATH/$WG_INTERFACE.conf <<EOF
-[Interface]
-PrivateKey = $PRIVATE_KEY
-Address = $WG_NETWORK
-ListenPort = $WG_PORT
-PostUp = iptables -A FORWARD -i $WG_INTERFACE -j ACCEPT; iptables -t nat -A POSTROUTING -o $INTERFACE -j MASQUERADE
-PostDown = iptables -D FORWARD -i $WG_INTERFACE -j ACCEPT; iptables -t nat -D POSTROUTING -o $INTERFACE -j MASQUERADE
-EOF
-
-# Enable and start WireGuard
-echo -e "${CYAN}🔄 Enabling and starting WireGuard...${RESET}"
-systemctl enable wg-quick@$WG_INTERFACE
-systemctl start wg-quick@$WG_INTERFACE || {
-    echo -e "${RED}❌ Failed to start WireGuard. Please check the configuration.${RESET}"
-    exit 1
-}
-
-echo -e "${GREEN}✅ WireGuard setup completed with IP ${YELLOW}$WG_NETWORK${GREEN} and port ${YELLOW}$WG_PORT${RESET}."
-
-# Download and set up the dashboard
-echo -e "${CYAN}📦 Downloading iPmart WGDashboard...${RESET}"
-mkdir -p $DASHBOARD_DIR
-cd /tmp
-curl -L -o dashboard.tar.gz "https://github.com/iPmartNetwork/iPmart-WGDasboard/releases/download/1.0.2/wgdashboard.tar.gz" || {
-    echo -e "${RED}❌ Failed to download the dashboard. Please check the URL.${RESET}"
-    exit 1
-}
-tar -xzf dashboard.tar.gz -C $DASHBOARD_DIR --strip-components=1
-
-# Install Python dependencies
-echo -e "${CYAN}📦 Installing Python dependencies for dashboard...${RESET}"
-cd $DASHBOARD_DIR
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt || {
-    echo -e "${RED}❌ Failed to install Python dependencies. Please check the requirements file.${RESET}"
     exit 1
 }
 
@@ -115,8 +44,9 @@ cat > /etc/nginx/sites-available/wgdashboard <<EOF
 server {
     listen 80;
     server_name $DOMAIN;
+
     location / {
-        proxy_pass http://127.0.0.1:8000;
+        proxy_pass http://127.0.0.1:$DASHBOARD_PORT;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
     }
@@ -129,19 +59,11 @@ nginx -t && systemctl restart nginx || {
     exit 1
 }
 
-# Obtain SSL certificate
-echo -e "${CYAN}⏳ Obtaining SSL certificate with Certbot...${RESET}"
-if ! certbot --nginx -d $DOMAIN --agree-tos --non-interactive --email $EMAIL; then
-    echo -e "${RED}❌ Failed to obtain SSL certificate. Please check Certbot logs.${RESET}"
-    exit 1
-fi
-
-echo -e "${GREEN}✅ SSL certificate successfully obtained.${RESET}"
-
 # Set up the dashboard service
 echo -e "${CYAN}🧰 Setting up dashboard systemd service...${RESET}"
 if [ -f $DASHBOARD_DIR/ipmart-dashboard.service ]; then
     cp $DASHBOARD_DIR/ipmart-dashboard.service /etc/systemd/system/
+    sed -i "s/8000/$DASHBOARD_PORT/g" /etc/systemd/system/ipmart-dashboard.service
 else
     echo -e "${RED}❌ Service file ipmart-dashboard.service not found in $DASHBOARD_DIR.${RESET}"
     exit 1
@@ -154,4 +76,4 @@ systemctl start ipmart-dashboard || {
     exit 1
 }
 
-echo -e "${MAGENTA}🎉 Installation complete! Access your dashboard at: ${YELLOW}https://$DOMAIN${RESET}"
+echo -e "${MAGENTA}🎉 Installation complete! Access your dashboard at: ${YELLOW}http://$DOMAIN:$DASHBOARD_PORT${RESET}"
