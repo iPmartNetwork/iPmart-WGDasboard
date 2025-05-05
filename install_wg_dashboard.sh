@@ -135,7 +135,8 @@ else
     if systemctl is-active --quiet ipmart-dashboard; then
         echo -e "${GREEN}✅ Dashboard service restarted successfully.${RESET}"
     else
-        echo -e "${RED}❌ Dashboard service failed to restart. Check logs with: journalctl -u ipmart-dashboard${RESET}"
+        echo -e "${RED}❌ Dashboard service failed to restart. Checking logs...${RESET}"
+        journalctl -u ipmart-dashboard | tail -n 20
         exit 1
     fi
 fi
