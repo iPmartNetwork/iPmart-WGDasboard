@@ -1,17 +1,6 @@
-# Flask: Web framework for building the dashboard
 Flask==2.3.2
-
-# Flask QRCode: For generating QR codes in the dashboard
 flask_qrcode==1.0.0
-
-# psutil: For system monitoring (CPU, memory, etc.)
 psutil==5.9.5
-
-# ifcfg: For detecting network interfaces
 ifcfg==0.22
-
-# pytz: For timezone handling
 pytz==2023.3
-
-# icmplib: For ICMP (ping) operations
 icmplib==3.0.3
