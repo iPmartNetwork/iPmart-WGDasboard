@@ -4,7 +4,7 @@ set -e
 
 # Clear the screen and display a logo
 clear
-echo -e "${MAGENTA}"
+echo -e "\033[0;35m"
 echo "
 ____________________________________________________________________________________
         ____                             _     _                                     
@@ -15,8 +15,8 @@ _/___/________/_/__/_(___(_/_____(_ __/___|/____(___ _(_ __|/_|/__(___/_/_____/_
                                                                                      
 "
 echo "***** https://github.com/ipmartnetwork *****"
-echo -e "${RESET}"
-echo -e "${CYAN}🌐 Welcome to the iPmart WireGuard Dashboard Installer!${RESET}"
+echo -e "\033[0m"
+echo -e "\033[0;36m🌐 Welcome to the iPmart WireGuard Dashboard Installer!\033[0m"
 
 # Define colors
 RED='\033[0;31m'
@@ -27,6 +27,7 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 RESET='\033[0m'
 
+# Default values
 WG_INTERFACE="wg0"
 WG_PORT="51820"
 WG_NETWORK="10.0.0.1/24"
@@ -36,6 +37,7 @@ DOMAIN=""
 EMAIL=""
 INTERFACE=""
 
+# Prompt user for domain and email
 read -p "$(echo -e "${BLUE}🌐 Enter your dashboard domain (e.g., panel.example.com): ${RESET}")" DOMAIN
 read -p "$(echo -e "${BLUE}📧 Enter your email for Let's Encrypt SSL: ${RESET}")" EMAIL
 
@@ -43,18 +45,29 @@ read -p "$(echo -e "${BLUE}📧 Enter your email for Let's Encrypt SSL: ${RESET}
 INTERFACE=$(ip route | grep default | awk '{print $5}')
 SERVER_IP=$(ip -4 addr show $INTERFACE | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 
+if [[ -z "$INTERFACE" || -z "$SERVER_IP" ]]; then
+    echo -e "${RED}❌ Failed to detect network interface or server IP. Please check your network configuration.${RESET}"
+    exit 1
+fi
+
 echo -e "${GREEN}✅ Detected network interface: ${YELLOW}$INTERFACE${RESET}"
 echo -e "${GREEN}✅ Server IP: ${YELLOW}$SERVER_IP${RESET}"
 
+# Install dependencies
 echo -e "${CYAN}⏳ Installing WireGuard and required packages...${RESET}"
-apt update && apt install -y wireguard qrencode curl nginx python3-pip unzip certbot python3-certbot-nginx python3.10-venv
+apt update && apt install -y wireguard qrencode curl nginx python3-pip unzip certbot python3-certbot-nginx python3.10-venv || {
+    echo -e "${RED}❌ Failed to install required packages. Please check your package manager.${RESET}"
+    exit 1
+}
 
+# Generate WireGuard keys
 echo -e "${CYAN}🔐 Generating WireGuard keys...${RESET}"
 mkdir -p $WG_CONF_PATH
 wg genkey | tee $WG_CONF_PATH/privatekey | wg pubkey > $WG_CONF_PATH/publickey
 PRIVATE_KEY=$(cat $WG_CONF_PATH/privatekey)
 PUBLIC_KEY=$(cat $WG_CONF_PATH/publickey)
 
+# Create WireGuard configuration
 echo -e "${CYAN}📄 Creating WireGuard configuration file...${RESET}"
 cat > $WG_CONF_PATH/$WG_INTERFACE.conf <<EOF
 [Interface]
@@ -65,38 +78,37 @@ PostUp = iptables -A FORWARD -i $WG_INTERFACE -j ACCEPT; iptables -t nat -A POST
 PostDown = iptables -D FORWARD -i $WG_INTERFACE -j ACCEPT; iptables -t nat -D POSTROUTING -o $INTERFACE -j MASQUERADE
 EOF
 
+# Enable and start WireGuard
 echo -e "${CYAN}🔄 Enabling and starting WireGuard...${RESET}"
 systemctl enable wg-quick@$WG_INTERFACE
-systemctl start wg-quick@$WG_INTERFACE
+systemctl start wg-quick@$WG_INTERFACE || {
+    echo -e "${RED}❌ Failed to start WireGuard. Please check the configuration.${RESET}"
+    exit 1
+}
 
 echo -e "${GREEN}✅ WireGuard setup completed with IP ${YELLOW}$WG_NETWORK${GREEN} and port ${YELLOW}$WG_PORT${RESET}."
 
+# Download and set up the dashboard
 echo -e "${CYAN}📦 Downloading iPmart WGDashboard...${RESET}"
 mkdir -p $DASHBOARD_DIR
 cd /tmp
-curl -L -o dashboard.tar.gz "https://github.com/iPmartNetwork/iPmart-WGDasboard/releases/download/1.0.0/wgdashboard.tar.gz"
+curl -L -o dashboard.tar.gz "https://github.com/iPmartNetwork/iPmart-WGDasboard/releases/download/1.0.0/wgdashboard.tar.gz" || {
+    echo -e "${RED}❌ Failed to download the dashboard. Please check the URL.${RESET}"
+    exit 1
+}
 tar -xzf dashboard.tar.gz -C $DASHBOARD_DIR --strip-components=1
 
+# Install Python dependencies
 echo -e "${CYAN}📦 Installing Python dependencies for dashboard...${RESET}"
 cd $DASHBOARD_DIR
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
-
-echo -e "${CYAN}📦 Verifying Python dependencies...${RESET}"
-cd $DASHBOARD_DIR
-source venv/bin/activate
-if ! pip install -r requirements.txt; then
+pip install -r requirements.txt || {
     echo -e "${RED}❌ Failed to install Python dependencies. Please check the requirements file.${RESET}"
     exit 1
-fi
+}
 
-echo -e "${CYAN}🔍 Checking for syntax errors in the application...${RESET}"
-if ! python -m py_compile app/__init__.py; then
-    echo -e "${RED}❌ Syntax errors detected in the application. Please fix them and try again.${RESET}"
-    exit 1
-fi
-
+# Set up NGINX
 echo -e "${CYAN}🔐 Setting up NGINX and obtaining SSL certificate...${RESET}"
 rm -f /etc/nginx/sites-enabled/default
 cat > /etc/nginx/sites-available/wgdashboard <<EOF
@@ -111,21 +123,22 @@ server {
 }
 EOF
 
-[ -L /etc/nginx/sites-enabled/wgdashboard ] && rm /etc/nginx/sites-enabled/wgdashboard
 ln -s /etc/nginx/sites-available/wgdashboard /etc/nginx/sites-enabled/wgdashboard
-nginx -t && systemctl restart nginx
+nginx -t && systemctl restart nginx || {
+    echo -e "${RED}❌ Failed to configure NGINX. Please check the configuration.${RESET}"
+    exit 1
+}
 
+# Obtain SSL certificate
 echo -e "${CYAN}⏳ Obtaining SSL certificate with Certbot...${RESET}"
-if certbot --nginx -d $DOMAIN --agree-tos --non-interactive --email $EMAIL; then
-    echo -e "${GREEN}✅ SSL certificate successfully obtained.${RESET}"
-else
+if ! certbot --nginx -d $DOMAIN --agree-tos --non-interactive --email $EMAIL; then
     echo -e "${RED}❌ Failed to obtain SSL certificate. Please check Certbot logs.${RESET}"
     exit 1
 fi
 
-echo -e "${CYAN}🔁 Reloading NGINX with SSL...${RESET}"
-systemctl reload nginx
+echo -e "${GREEN}✅ SSL certificate successfully obtained.${RESET}"
 
+# Set up the dashboard service
 echo -e "${CYAN}🧰 Setting up dashboard systemd service...${RESET}"
 if [ -f $DASHBOARD_DIR/ipmart-dashboard.service ]; then
     cp $DASHBOARD_DIR/ipmart-dashboard.service /etc/systemd/system/
@@ -134,38 +147,11 @@ else
     exit 1
 fi
 
-systemctl daemon-reexec
 systemctl daemon-reload
 systemctl enable ipmart-dashboard
-systemctl start ipmart-dashboard
-
-# Check if the dashboard service is running
-if systemctl is-active --quiet ipmart-dashboard; then
-    echo -e "${GREEN}✅ Dashboard service is running.${RESET}"
-else
-    echo -e "${RED}❌ Dashboard service failed to start. Attempting to restart...${RESET}"
-    systemctl restart ipmart-dashboard
-    sleep 5
-    if systemctl is-active --quiet ipmart-dashboard; then
-        echo -e "${GREEN}✅ Dashboard service restarted successfully.${RESET}"
-    else
-        echo -e "${RED}❌ Dashboard service failed to restart. Checking logs...${RESET}"
-        journalctl -u ipmart-dashboard | tail -n 20
-        exit 1
-    fi
-fi
-
-echo -e "${CYAN}🔁 Reloading NGINX with SSL...${RESET}"
-systemctl reload nginx
-
-# Test NGINX configuration and backend connectivity
-echo -e "${CYAN}⏳ Testing NGINX and backend connectivity...${RESET}"
-if curl -sI http://127.0.0.1:8000 | grep -q "200 OK"; then
-    echo -e "${GREEN}✅ Backend is reachable by NGINX.${RESET}"
-else
-    echo -e "${RED}❌ Backend is not reachable by NGINX. Checking dashboard service logs...${RESET}"
-    journalctl -u ipmart-dashboard | tail -n 20
+systemctl start ipmart-dashboard || {
+    echo -e "${RED}❌ Failed to start the dashboard service. Please check the logs.${RESET}"
     exit 1
-fi
+}
 
 echo -e "${MAGENTA}🎉 Installation complete! Access your dashboard at: ${YELLOW}https://$DOMAIN${RESET}"
