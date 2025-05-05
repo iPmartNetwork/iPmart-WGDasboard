@@ -23,7 +23,8 @@
 
 ```bash
 git clone https://github.com/iPmartNetwork/iPmart-WGDasboard.git
-cd iPmart-WGDashboard
+cd iPmart-WGDasboard
+apt install python3.10-venv
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
