@@ -100,6 +100,18 @@ source venv/bin/activate
 # Install Python dependencies
 pip install -r requirements.txt
 
+# Install all required dependencies, including Python packages and system tools
+apt update && apt install -y wireguard qrencode curl nginx python3-pip unzip python3.10-venv jq || {
+    echo -e "${RED}❌ Failed to install required packages. Please check your package manager.${RESET}"
+    exit 1
+}
+
+# Install Python dependencies from requirements.txt
+pip install -r $DASHBOARD_DIR/requirements.txt || {
+    echo -e "${RED}❌ Failed to install Python dependencies. Please check the requirements file.${RESET}"
+    exit 1
+}
+
 # Set up Flask environment variables
 export FLASK_APP=run.py
 export FLASK_ENV=production
