@@ -19,68 +19,65 @@
 
 ---
 
-## ⚙️ Installation
+## ⚙️ Easy Automated Installation (Recommended)
+
+Use the provided Bash installer to set up everything in minutes, including:
+- WireGuard installation
+- Server key generation
+- NAT and routing setup
+- WGDashboard deployment (Python/Flask)
+- SSL via Let's Encrypt
+- systemd service for persistent dashboard startup
+
+### 📥 How to Run
+
+```bash
+bash <(curl -Ls https://raw.githubusercontent.com/iPmartNetwork/iPmart-WGDasboard/master/install_wg_dashboard.sh
+
+```
+
+> You’ll be prompted for:
+> - Your dashboard domain (e.g. panel.example.com)
+> - An email address for SSL certification
+
+---
+
+## 🧪 Manual Development Setup (Alternative)
 
 ```bash
 git clone https://github.com/yourname/ipmart-wgdashboard.git
 cd ipmart-wgdashboard
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 python run.py
 ```
 
-> Default runs on: `http://localhost:8000`
-
 ---
 
-## ⚠️ Configuration
-
-Edit `config.ini` to set username, password (SHA256 hash), panel port, WireGuard path, and Telegram bot token/chat ID.
-
----
-
-## 🧪 Development
-
-- Python 3.9+
-- Flask
-- Bootstrap 5 (RTL)
-- jQuery, Chart.js
-- Telegram Bot API
-
----
-
-## 🌍 ترجمه فارسی
-
-### 🎯 امکانات داشبورد iPmart
-
-- مدیریت کامل اینترفیس‌ها و کاربران WireGuard
-- مانیتور زنده مصرف RAM و CPU
-- پینگ و ترک‌روت مستقیم از پنل
-- دانلود فایل کانفیگ و QR برای اتصال سریع
-- لاگین امن با نام کاربری و رمز هش‌شده
-- بکاپ‌گیری، بازگردانی و حذف
-- ارسال هشدار و فایل به تلگرام
-- طراحی حرفه‌ای با بوت‌استرپ راست‌چین
-
----
-
-### ⚙️ نصب سریع
+## 🌍 فارسی - نصب خودکار
 
 ```bash
-git clone https://github.com/yourname/ipmart-wgdashboard.git
-cd ipmart-wgdashboard
-pip install -r requirements.txt
-python run.py
+bash <(curl -Ls https://raw.githubusercontent.com/iPmartNetwork/iPmart-WGDasboard/master/install_wg_dashboard.sh
+
 ```
 
-- آدرس پیش‌فرض: `http://localhost:8000`
-- اطلاعات ورود: در `config.ini`
+> اطلاعات لازم: دامنه برای SSL و ایمیل شما
+
+✅ همه‌چیز از صفر تا صد: WireGuard + داشبورد + SSL
 
 ---
 
-### ☎️ ارتباط با ما
+## 🔐 Config
 
-برای پشتیبانی یا پیشنهاد ویژگی جدید لطفاً Issue باز کنید یا از طریق تلگرام تماس بگیرید.
+- Edit `config.ini` to change:
+  - username/password
+  - default peer config
+  - WireGuard config path
+  - Telegram bot token and chat_id
 
 ---
 
-🔐 تحت مجوز MIT منتشر شده است.
+## 📜 License
+
+MIT License
