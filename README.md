@@ -58,7 +58,7 @@ python run.py
 ## 🌍 فارسی - نصب خودکار
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/iPmartNetwork/iPmart-WGDasboard/master/install_wg_dashboard.sh
+bash <(curl -Ls https://raw.githubusercontent.com/iPmartNetwork/iPmart-WGDasboard/master/install_wg_dashboard.sh)
 
 ```
 
