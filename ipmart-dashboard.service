@@ -1,0 +1,15 @@
+
+[Unit]
+Description=WireGuard Dashboard by iPmart
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/wgdashboard
+ExecStart=/opt/wgdashboard/venv/bin/python run.py
+Restart=always
+RestartSec=3
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
