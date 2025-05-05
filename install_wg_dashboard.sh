@@ -61,8 +61,37 @@ echo -e "${GREEN}✅ Dashboard will run on port: ${YELLOW}$DASHBOARD_PORT${RESET
 
 # Install dependencies
 echo -e "${CYAN}⏳ Installing WireGuard and required packages...${RESET}"
-apt update && apt install -y wireguard qrencode curl nginx python3-pip unzip certbot python3-certbot-nginx python3.10-venv || {
+apt update && apt install -y wireguard qrencode curl nginx python3-pip unzip certbot python3-certbot-nginx python3.10-venv jq || {
     echo -e "${RED}❌ Failed to install required packages. Please check your package manager.${RESET}"
+    exit 1
+}
+
+# Fetch the latest release from GitHub
+echo -e "${CYAN}📦 Fetching the latest release of iPmart WGDashboard...${RESET}"
+LATEST_RELEASE=$(curl -s https://api.github.com/repos/iPmartNetwork/iPmart-WGDasboard/releases/latest | jq -r '.tag_name')
+
+if [[ -z "$LATEST_RELEASE" || "$LATEST_RELEASE" == "null" ]]; then
+    echo -e "${RED}❌ Failed to fetch the latest release. Please check your internet connection or GitHub API.${RESET}"
+    exit 1
+fi
+
+echo -e "${GREEN}✅ Latest release found: ${YELLOW}$LATEST_RELEASE${RESET}"
+
+# Download and extract the latest release
+mkdir -p $DASHBOARD_DIR
+curl -L -o /tmp/wgdashboard.tar.gz "https://github.com/iPmartNetwork/iPmart-WGDasboard/releases/download/$LATEST_RELEASE/wgdashboard.tar.gz" || {
+    echo -e "${RED}❌ Failed to download the latest release. Please check the URL or your internet connection.${RESET}"
+    exit 1
+}
+tar -xzf /tmp/wgdashboard.tar.gz -C $DASHBOARD_DIR --strip-components=1
+
+# Install Python dependencies
+echo -e "${CYAN}📦 Installing Python dependencies for dashboard...${RESET}"
+cd $DASHBOARD_DIR
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt || {
+    echo -e "${RED}❌ Failed to install Python dependencies. Please check the requirements file.${RESET}"
     exit 1
 }
 
