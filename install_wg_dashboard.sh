@@ -2,6 +2,15 @@
 
 set -e
 
+# Define colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+RESET='\033[0m'
+
 WG_INTERFACE="wg0"
 WG_PORT="51820"
 WG_NETWORK="10.0.0.1/24"
@@ -11,26 +20,27 @@ DOMAIN=""
 EMAIL=""
 INTERFACE=""
 
-read -p "🌐 Enter your dashboard domain (e.g., panel.example.com): " DOMAIN
-read -p "📧 Enter your email for Let's Encrypt SSL: " EMAIL
+echo -e "${CYAN}🌐 Welcome to the WireGuard Dashboard Installer!${RESET}"
+read -p "$(echo -e "${BLUE}🌐 Enter your dashboard domain (e.g., panel.example.com): ${RESET}")" DOMAIN
+read -p "$(echo -e "${BLUE}📧 Enter your email for Let's Encrypt SSL: ${RESET}")" EMAIL
 
 # Detect default network interface
 INTERFACE=$(ip route | grep default | awk '{print $5}')
 SERVER_IP=$(ip -4 addr show $INTERFACE | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
 
-echo "✅ Detected network interface: $INTERFACE"
-echo "✅ Server IP: $SERVER_IP"
+echo -e "${GREEN}✅ Detected network interface: ${YELLOW}$INTERFACE${RESET}"
+echo -e "${GREEN}✅ Server IP: ${YELLOW}$SERVER_IP${RESET}"
 
-echo "⏳ Installing WireGuard and required packages..."
+echo -e "${CYAN}⏳ Installing WireGuard and required packages...${RESET}"
 apt update && apt install -y wireguard qrencode curl nginx python3-pip unzip certbot python3-certbot-nginx
 
-echo "🔐 Generating WireGuard keys..."
+echo -e "${CYAN}🔐 Generating WireGuard keys...${RESET}"
 mkdir -p $WG_CONF_PATH
 wg genkey | tee $WG_CONF_PATH/privatekey | wg pubkey > $WG_CONF_PATH/publickey
 PRIVATE_KEY=$(cat $WG_CONF_PATH/privatekey)
 PUBLIC_KEY=$(cat $WG_CONF_PATH/publickey)
 
-echo "📄 Creating WireGuard configuration file..."
+echo -e "${CYAN}📄 Creating WireGuard configuration file...${RESET}"
 cat > $WG_CONF_PATH/$WG_INTERFACE.conf <<EOF
 [Interface]
 PrivateKey = $PRIVATE_KEY
@@ -40,25 +50,25 @@ PostUp = iptables -A FORWARD -i $WG_INTERFACE -j ACCEPT; iptables -t nat -A POST
 PostDown = iptables -D FORWARD -i $WG_INTERFACE -j ACCEPT; iptables -t nat -D POSTROUTING -o $INTERFACE -j MASQUERADE
 EOF
 
-echo "🔄 Enabling and starting WireGuard..."
+echo -e "${CYAN}🔄 Enabling and starting WireGuard...${RESET}"
 systemctl enable wg-quick@$WG_INTERFACE
 systemctl start wg-quick@$WG_INTERFACE
 
-echo "✅ WireGuard setup completed with IP $WG_NETWORK and port $WG_PORT."
+echo -e "${GREEN}✅ WireGuard setup completed with IP ${YELLOW}$WG_NETWORK${GREEN} and port ${YELLOW}$WG_PORT${RESET}."
 
-echo "📦 Downloading iPmart WGDashboard..."
+echo -e "${CYAN}📦 Downloading iPmart WGDashboard...${RESET}"
 mkdir -p $DASHBOARD_DIR
 cd /tmp
 curl -L -o dashboard.tar.gz "https://github.com/iPmartNetwork/iPmart-WGDasboard/releases/download/1.0.0/wgdashboard.tar.gz"
 tar -xzf dashboard.tar.gz -C $DASHBOARD_DIR --strip-components=1
 
-echo "📦 Installing Python dependencies for dashboard..."
+echo -e "${CYAN}📦 Installing Python dependencies for dashboard...${RESET}"
 cd $DASHBOARD_DIR
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-echo "🔐 Setting up NGINX and obtaining SSL certificate..."
+echo -e "${CYAN}🔐 Setting up NGINX and obtaining SSL certificate...${RESET}"
 rm -f /etc/nginx/sites-enabled/default
 cat > /etc/nginx/sites-available/wgdashboard <<EOF
 server {
@@ -76,22 +86,22 @@ EOF
 ln -s /etc/nginx/sites-available/wgdashboard /etc/nginx/sites-enabled/wgdashboard
 nginx -t && systemctl restart nginx
 
-echo "⏳ Obtaining SSL certificate with Certbot..."
+echo -e "${CYAN}⏳ Obtaining SSL certificate with Certbot...${RESET}"
 if certbot --nginx -d $DOMAIN --agree-tos --non-interactive --email $EMAIL; then
-    echo "✅ SSL certificate successfully obtained."
+    echo -e "${GREEN}✅ SSL certificate successfully obtained.${RESET}"
 else
-    echo "❌ Failed to obtain SSL certificate. Please check Certbot logs."
+    echo -e "${RED}❌ Failed to obtain SSL certificate. Please check Certbot logs.${RESET}"
     exit 1
 fi
 
-echo "🔁 Reloading NGINX with SSL..."
+echo -e "${CYAN}🔁 Reloading NGINX with SSL...${RESET}"
 systemctl reload nginx
 
-echo "🧰 Setting up dashboard systemd service..."
+echo -e "${CYAN}🧰 Setting up dashboard systemd service...${RESET}"
 if [ -f $DASHBOARD_DIR/ipmart-dashboard.service ]; then
     cp $DASHBOARD_DIR/ipmart-dashboard.service /etc/systemd/system/
 else
-    echo "❌ Service file ipmart-dashboard.service not found in $DASHBOARD_DIR."
+    echo -e "${RED}❌ Service file ipmart-dashboard.service not found in $DASHBOARD_DIR.${RESET}"
     exit 1
 fi
 
@@ -102,22 +112,22 @@ systemctl start ipmart-dashboard
 
 # Check if the dashboard service is running
 if systemctl is-active --quiet ipmart-dashboard; then
-    echo "✅ Dashboard service is running."
+    echo -e "${GREEN}✅ Dashboard service is running.${RESET}"
 else
-    echo "❌ Dashboard service failed to start. Check logs with: journalctl -u ipmart-dashboard"
+    echo -e "${RED}❌ Dashboard service failed to start. Check logs with: journalctl -u ipmart-dashboard${RESET}"
     exit 1
 fi
 
-echo "🔁 Reloading NGINX with SSL..."
+echo -e "${CYAN}🔁 Reloading NGINX with SSL...${RESET}"
 systemctl reload nginx
 
 # Test NGINX configuration and backend connectivity
-echo "⏳ Testing NGINX and backend connectivity..."
+echo -e "${CYAN}⏳ Testing NGINX and backend connectivity...${RESET}"
 if curl -sI http://127.0.0.1:8000 | grep -q "200 OK"; then
-    echo "✅ Backend is reachable by NGINX."
+    echo -e "${GREEN}✅ Backend is reachable by NGINX.${RESET}"
 else
-    echo "❌ Backend is not reachable by NGINX. Check the dashboard service and firewall settings."
+    echo -e "${RED}❌ Backend is not reachable by NGINX. Check the dashboard service and firewall settings.${RESET}"
     exit 1
 fi
 
-echo "✅ Installation complete! Access your dashboard at: https://$DOMAIN"
+echo -e "${MAGENTA}🎉 Installation complete! Access your dashboard at: ${YELLOW}https://$DOMAIN${RESET}"
