@@ -92,7 +92,7 @@ echo -e "${GREEN}✅ WireGuard setup completed with IP ${YELLOW}$WG_NETWORK${GRE
 echo -e "${CYAN}📦 Downloading iPmart WGDashboard...${RESET}"
 mkdir -p $DASHBOARD_DIR
 cd /tmp
-curl -L -o dashboard.tar.gz "https://github.com/iPmartNetwork/iPmart-WGDasboard/releases/download/1.0.1/wgdashboard.tar.gz" || {
+curl -L -o dashboard.tar.gz "https://github.com/iPmartNetwork/iPmart-WGDasboard/releases/download/1.0.0/wgdashboard.tar.gz" || {
     echo -e "${RED}❌ Failed to download the dashboard. Please check the URL.${RESET}"
     exit 1
 }
