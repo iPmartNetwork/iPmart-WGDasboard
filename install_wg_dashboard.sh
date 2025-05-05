@@ -100,4 +100,24 @@ systemctl daemon-reload
 systemctl enable ipmart-dashboard
 systemctl start ipmart-dashboard
 
+# Check if the dashboard service is running
+if systemctl is-active --quiet ipmart-dashboard; then
+    echo "✅ Dashboard service is running."
+else
+    echo "❌ Dashboard service failed to start. Check logs with: journalctl -u ipmart-dashboard"
+    exit 1
+fi
+
+echo "🔁 Reloading NGINX with SSL..."
+systemctl reload nginx
+
+# Test NGINX configuration and backend connectivity
+echo "⏳ Testing NGINX and backend connectivity..."
+if curl -sI http://127.0.0.1:8000 | grep -q "200 OK"; then
+    echo "✅ Backend is reachable by NGINX."
+else
+    echo "❌ Backend is not reachable by NGINX. Check the dashboard service and firewall settings."
+    exit 1
+fi
+
 echo "✅ Installation complete! Access your dashboard at: https://$DOMAIN"
