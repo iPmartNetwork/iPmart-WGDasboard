@@ -2,6 +2,22 @@
 
 set -e
 
+# Clear the screen and display a logo
+clear
+echo -e "${MAGENTA}"
+echo "
+____________________________________________________________________________________
+        ____                             _     _                                     
+    ,   /    )                           /|   /                                  /   
+-------/____/---_--_----__---)__--_/_---/-| -/-----__--_/_-----------__---)__---/-__-
+  /   /        / /  ) /   ) /   ) /    /  | /    /___) /   | /| /  /   ) /   ) /(    
+_/___/________/_/__/_(___(_/_____(_ __/___|/____(___ _(_ __|/_|/__(___/_/_____/___\__
+                                                                                     
+"
+echo "***** https://github.com/ipmartnetwork *****"
+echo -e "${RESET}"
+echo -e "${CYAN}🌐 Welcome to the iPmart WireGuard Dashboard Installer!${RESET}"
+
 # Define colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -20,7 +36,6 @@ DOMAIN=""
 EMAIL=""
 INTERFACE=""
 
-echo -e "${CYAN}🌐 Welcome to the WireGuard Dashboard Installer!${RESET}"
 read -p "$(echo -e "${BLUE}🌐 Enter your dashboard domain (e.g., panel.example.com): ${RESET}")" DOMAIN
 read -p "$(echo -e "${BLUE}📧 Enter your email for Let's Encrypt SSL: ${RESET}")" EMAIL
 
