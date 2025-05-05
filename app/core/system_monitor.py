@@ -78,3 +78,38 @@ class SystemMonitor:
         except Exception as e:
             print(f"Error retrieving disk usage: {e}")
             return None
+
+
+
+import subprocess
+import time
+
+def get_peer_statuses(interface='wg0'):
+    try:
+        result = subprocess.run(['wg', 'show', interface, 'dump'], capture_output=True, text=True, check=True)
+        lines = result.stdout.strip().split('\n')[1:]  # skip header
+        now = int(time.time())
+        statuses = []
+        for line in lines:
+            fields = line.split('\t')
+            public_key = fields[0]
+            endpoint = fields[3]
+            latest_handshake = int(fields[4])
+            rx = round(int(fields[5]) / 1024 / 1024, 2)  # bytes to MB
+            tx = round(int(fields[6]) / 1024 / 1024, 2)
+
+            age = now - latest_handshake
+            connected = age < 180  # 3 minutes threshold
+
+            statuses.append({
+                "public_key": public_key,
+                "endpoint": endpoint,
+                "connected": connected,
+                "last_handshake_seconds": age,
+                "rx": rx,
+                "tx": tx
+            })
+        return statuses
+    except Exception as e:
+        print("⚠️ get_peer_statuses error:", e)
+        return []

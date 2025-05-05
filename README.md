@@ -1,83 +1,91 @@
+![iPmart WGDashboard](static/logo.svg)
+
 
 # iPmart WGDashboard
 
-🌐 A modern web dashboard for managing WireGuard VPN servers with real-time monitoring, peer management, configuration tools, and Telegram integration.
+یک داشبورد کامل و مدرن برای مدیریت WireGuard، طراحی‌شده برای محیط‌های فارسی با امکانات قدرتمند مدیریتی و API.
 
 ---
 
-## 🚀 Features
+## 🚀 ویژگی‌ها
 
-- ✅ Manage WireGuard interfaces and peers (add/remove/edit)
-- 📊 Live monitoring (CPU, RAM, Network)
-- 🧰 Tools: Ping / Traceroute
-- 🧾 QR code & config download for each peer
-- 🔐 Secure login (config-based)
-- 🔄 Automatic backup, restore & delete
-- 📤 Telegram alerts with backup sending
-- 🧩 Bootstrap RTL UI with dark mode
-- 📦 Fully modular Flask + Jinja2 backend
+- 🎨 رابط کاربری فارسی و راست‌چین (RTL)
+- 📦 بکاپ‌گیری و بازیابی کانفیگ
+- 🤖 ارسال پیام و فایل بکاپ به ربات تلگرام
+- 👤 پنل کاربری اختصاصی با QR Code و دانلود فایل
+- 📈 گراف زنده مصرف CPU, RAM, TX/RX
+- 🧩 API REST با احراز هویت توکنی
+- 🛠️ نصب آسان با systemd و اسکریپت آماده
 
 ---
 
-## ⚙️ Easy Automated Installation (Recommended)
-
-Use the provided Bash installer to set up everything in minutes, including:
-- WireGuard installation
-- Server key generation
-- NAT and routing setup
-- WGDashboard deployment (Python/Flask)
-- SSL via Let's Encrypt
-- systemd service for persistent dashboard startup
-
-### 📥 How to Run
+## ⚙️ نصب سریع
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/iPmartNetwork/iPmart-WGDasboard/master/install_wg_dashboard.sh)
-
-```
-
-> You’ll be prompted for:
-> - Your dashboard domain (e.g. panel.example.com)
-> - An email address for SSL certification
-
----
-
-## 🧪 Manual Development Setup (Alternative)
-
-```bash
-git clone https://github.com/iPmartNetwork/iPmart-WGDasboard.git
-cd ipmart-wgdashboard
+git clone https://github.com/iPmartNetwork/iPmart-WGDashboard.git
+cd iPmart-WGDashboard
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+```
+
+---
+
+## 🖥️ اجرا
+
+```bash
 python run.py
 ```
 
----
-
-## 🌍 فارسی - نصب خودکار
+یا با systemd:
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/iPmartNetwork/iPmart-WGDasboard/master/install_wg_dashboard.sh)
-
+sudo cp ipmart-dashboard.service /etc/systemd/system/
+sudo systemctl daemon-reexec
+sudo systemctl start ipmart-dashboard
+sudo systemctl enable ipmart-dashboard
 ```
 
-> اطلاعات لازم: دامنه برای SSL و ایمیل شما
+---
 
-✅ همه‌چیز از صفر تا صد: WireGuard + داشبورد + SSL
+## 🔐 فایل `.env` نمونه
+
+```
+API_TOKEN=your_api_token
+TELEGRAM_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
+```
 
 ---
 
-## 🔐 Config
+## 📡 API REST
 
-- Edit `config.ini` to change:
-  - username/password
-  - default peer config
-  - WireGuard config path
-  - Telegram bot token and chat_id
+| مسیر | متد | توضیح |
+|------|-----|--------|
+| `/api/peers` | GET | لیست کاربران |
+| `/api/peer/add` | POST | افزودن کاربر |
+| `/api/peer/delete` | POST | حذف کاربر |
+
+هدر لازم:
+```
+Authorization: Bearer your_api_token
+```
 
 ---
 
-## 📜 License
+## 👤 دسترسی کاربر
 
-MIT License
+- مسیر ورود: `/user/login`
+- نمایش کانفیگ، QR و دانلود فایل
+
+---
+
+## 📈 گراف منابع
+
+- آدرس JSON: `/system/stats`
+- بروزرسانی لحظه‌ای در داشبورد
+
+---
+
+## 🔗 مجوز
+MIT

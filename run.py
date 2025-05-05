@@ -1,3 +1,4 @@
+from app.core.scheduler import start_scheduler
 import os
 from app import create_app
 
@@ -10,4 +11,6 @@ if __name__ == '__main__':
     debug = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
 
     # Warning: Do not use Flask's built-in server in production
-    app.run(host=host, port=port, debug=debug)
+    start_scheduler()
+
+app.run(host=host, port=port, debug=debug)
