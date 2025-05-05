@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 set -e
@@ -77,13 +76,25 @@ EOF
 ln -s /etc/nginx/sites-available/wgdashboard /etc/nginx/sites-enabled/wgdashboard
 nginx -t && systemctl restart nginx
 
-certbot --nginx -d $DOMAIN --agree-tos --non-interactive --email $EMAIL
+echo "⏳ Obtaining SSL certificate with Certbot..."
+if certbot --nginx -d $DOMAIN --agree-tos --non-interactive --email $EMAIL; then
+    echo "✅ SSL certificate successfully obtained."
+else
+    echo "❌ Failed to obtain SSL certificate. Please check Certbot logs."
+    exit 1
+fi
 
 echo "🔁 Reloading NGINX with SSL..."
 systemctl reload nginx
 
 echo "🧰 Setting up dashboard systemd service..."
-cp $DASHBOARD_DIR/ipmart-dashboard.service /etc/systemd/system/
+if [ -f $DASHBOARD_DIR/ipmart-dashboard.service ]; then
+    cp $DASHBOARD_DIR/ipmart-dashboard.service /etc/systemd/system/
+else
+    echo "❌ Service file ipmart-dashboard.service not found in $DASHBOARD_DIR."
+    exit 1
+fi
+
 systemctl daemon-reexec
 systemctl daemon-reload
 systemctl enable ipmart-dashboard
