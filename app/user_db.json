@@ -1,9 +1,0 @@
-[
-    {
-        "username": "ali",
-        "password": "mypassword",
-        "config_path": "/etc/wireguard/clients/ali.conf",
-        "max_traffic_mb": 1024,
-        "expire_at": "2025-05-15"
-    }
-]
