@@ -32,7 +32,7 @@ echo -e "${GREEN}✅ Detected network interface: ${YELLOW}$INTERFACE${RESET}"
 echo -e "${GREEN}✅ Server IP: ${YELLOW}$SERVER_IP${RESET}"
 
 echo -e "${CYAN}⏳ Installing WireGuard and required packages...${RESET}"
-apt update && apt install -y wireguard qrencode curl nginx python3-pip unzip certbot python3-certbot-nginx
+apt update && apt install -y wireguard qrencode curl nginx python3-pip unzip certbot python3-certbot-nginx python3.10-venv
 
 echo -e "${CYAN}🔐 Generating WireGuard keys...${RESET}"
 mkdir -p $WG_CONF_PATH
