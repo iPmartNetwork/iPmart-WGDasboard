@@ -45,7 +45,7 @@ bash <(curl -Ls https://raw.githubusercontent.com/iPmartNetwork/iPmart-WGDasboar
 ## 🧪 Manual Development Setup (Alternative)
 
 ```bash
-git clone https://github.com/yourname/ipmart-wgdashboard.git
+git clone https://github.com/iPmartNetwork/iPmart-WGDasboard.git
 cd ipmart-wgdashboard
 python3 -m venv venv
 source venv/bin/activate
