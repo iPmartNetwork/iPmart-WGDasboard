@@ -1,4 +1,4 @@
-![iPmart WGDashboard](static/logo.svg)
+
 
 
 # iPmart WGDashboard
