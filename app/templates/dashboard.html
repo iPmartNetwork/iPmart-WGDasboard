@@ -1,29 +1,37 @@
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WireGuard داشبورد</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet" integrity="sha384-9ndCyUa1zYhlsA4Lz9nE2iD7kUkkpP1Q1z9e+f5p0hX1pHp1Kf0k0z0fAd2FzFzF" crossorigin="anonymous">
 </head>
 <body class="bg-dark text-white">
     <div class="container py-4">
-        <h1 class="mb-4">داشبورد WireGuard</h1>
-        <table class="table table-bordered table-dark">
+        <h1 class="mb-4 text-center">داشبورد WireGuard</h1>
+
+        {% if interfaces %}
+        <table class="table table-bordered table-dark table-hover">
             <thead>
                 <tr>
-                    <th>نام</th>
-                    <th>وضعیت</th>
-                    <th>Public Key</th>
-                    <th>پورت</th>
-                    <th>آدرس</th>
+                    <th scope="col">نام</th>
+                    <th scope="col">وضعیت</th>
+                    <th scope="col">Public Key</th>
+                    <th scope="col">پورت</th>
+                    <th scope="col">آدرس</th>
                 </tr>
             </thead>
             <tbody>
                 {% for iface in interfaces %}
                 <tr>
                     <td>{{ iface.name }}</td>
-                    <td>{{ iface.status }}</td>
+                    <td>
+                        {% if iface.status == "running" %}
+                        <span class="badge bg-success">فعال</span>
+                        {% else %}
+                        <span class="badge bg-danger">غیرفعال</span>
+                        {% endif %}
+                    </td>
                     <td><small>{{ iface.pubkey }}</small></td>
                     <td>{{ iface.listen_port }}</td>
                     <td>{{ iface.address }}</td>
@@ -31,6 +39,12 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <p class="text-warning text-center">هیچ اینترفیسی برای نمایش وجود ندارد.</p>
+        {% endif %}
     </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+3o1q4YkMfJWY13h5mZ6L5VoBlr4" crossorigin="anonymous"></script>
 </body>
 </html>
