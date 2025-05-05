@@ -32,7 +32,7 @@ Use the provided Bash installer to set up everything in minutes, including:
 ### 📥 How to Run
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/iPmartNetwork/iPmart-WGDasboard/master/install_wg_dashboard.sh
+bash <(curl -Ls https://raw.githubusercontent.com/iPmartNetwork/iPmart-WGDasboard/master/install_wg_dashboard.sh)
 
 ```
 
