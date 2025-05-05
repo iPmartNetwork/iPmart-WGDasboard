@@ -98,6 +98,14 @@ pip install -r requirements.txt || {
 # Set up NGINX
 echo -e "${CYAN}🔐 Setting up NGINX and obtaining SSL certificate...${RESET}"
 rm -f /etc/nginx/sites-enabled/default
+
+# Check if the symbolic link already exists and remove it
+if [ -L /etc/nginx/sites-enabled/wgdashboard ]; then
+    echo -e "${YELLOW}⚠️ Existing symbolic link for wgdashboard found. Removing it...${RESET}"
+    rm -f /etc/nginx/sites-enabled/wgdashboard
+fi
+
+# Create the NGINX configuration file
 cat > /etc/nginx/sites-available/wgdashboard <<EOF
 server {
     listen 80;
@@ -111,7 +119,10 @@ server {
 }
 EOF
 
+# Create a symbolic link for the NGINX configuration
 ln -s /etc/nginx/sites-available/wgdashboard /etc/nginx/sites-enabled/wgdashboard
+
+# Test and restart NGINX
 nginx -t && systemctl restart nginx || {
     echo -e "${RED}❌ Failed to configure NGINX. Please check the configuration.${RESET}"
     exit 1
