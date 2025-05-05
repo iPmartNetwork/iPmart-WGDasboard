@@ -114,8 +114,15 @@ systemctl start ipmart-dashboard
 if systemctl is-active --quiet ipmart-dashboard; then
     echo -e "${GREEN}✅ Dashboard service is running.${RESET}"
 else
-    echo -e "${RED}❌ Dashboard service failed to start. Check logs with: journalctl -u ipmart-dashboard${RESET}"
-    exit 1
+    echo -e "${RED}❌ Dashboard service failed to start. Attempting to restart...${RESET}"
+    systemctl restart ipmart-dashboard
+    sleep 5
+    if systemctl is-active --quiet ipmart-dashboard; then
+        echo -e "${GREEN}✅ Dashboard service restarted successfully.${RESET}"
+    else
+        echo -e "${RED}❌ Dashboard service failed to restart. Check logs with: journalctl -u ipmart-dashboard${RESET}"
+        exit 1
+    fi
 fi
 
 echo -e "${CYAN}🔁 Reloading NGINX with SSL...${RESET}"
@@ -126,7 +133,8 @@ echo -e "${CYAN}⏳ Testing NGINX and backend connectivity...${RESET}"
 if curl -sI http://127.0.0.1:8000 | grep -q "200 OK"; then
     echo -e "${GREEN}✅ Backend is reachable by NGINX.${RESET}"
 else
-    echo -e "${RED}❌ Backend is not reachable by NGINX. Check the dashboard service and firewall settings.${RESET}"
+    echo -e "${RED}❌ Backend is not reachable by NGINX. Checking dashboard service logs...${RESET}"
+    journalctl -u ipmart-dashboard | tail -n 20
     exit 1
 fi
 
