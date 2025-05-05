@@ -1,3 +1,32 @@
+#!/bin/bash
+
+set -e
+
+# Clear the screen and display a logo
+clear
+echo -e "\033[0;35m"
+echo "
+____________________________________________________________________________________
+        ____                             _     _                                     
+    ,   /    )                           /|   /                                  /   
+-------/____/---_--_----__---)__--_/_---/-| -/-----__--_/_-----------__---)__---/-__-
+  /   /        / /  ) /   ) /   ) /    /  | /    /___) /   | /| /  /   ) /   ) /(    
+_/___/________/_/__/_(___(_/_____(_ __/___|/____(___ _(_ __|/_|/__(___/_/_____/___\__
+                                                                                     
+"
+echo "***** https://github.com/ipmartnetwork *****"
+echo -e "\033[0m"
+echo -e "\033[0;36m🌐 Welcome to the iPmart WireGuard Dashboard Installer!\033[0m"
+
+# Define colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+MAGENTA='\033[0;35m'
+RESET='\033[0m'
+
 # Default values
 WG_INTERFACE="wg0"
 WG_PORT="51820"
