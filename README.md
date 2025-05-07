@@ -22,7 +22,7 @@
 ## ⚙️ نصب سریع
 
 ```bash
-git clone https://github.com/yourusername/iPmart-WGDashboard.git
+git clone https://github.com/iPmartNetwork/iPmart-WGDasboard.git
 cd iPmart-WGDashboard
 python3 -m venv venv
 source venv/bin/activate
